@@ -1,39 +1,39 @@
+import { useSensor } from "@/hooks/useSensor";
+import { getClient } from "@/util/socket";
+import { useState } from "react";
 import { Text, View, StyleSheet, Button } from "react-native";
-import TcpSocket from "react-native-tcp-socket";
 
 export default function Home() {
-  const send = () => {
-    // Create socket
-    try {
-      const client = TcpSocket.createConnection(
-        {
-          port: 12345,
-          host: "192.168.11.9",
-        },
-        () => {
-          // Write on the socket
-          client.write(
-            '{"timestamp": 1719660262.709673, "accelerometer": {"x": 0, "y": 1, "z": 2}, "gyroscope": {"x": 3, "y": 4, "z": 5}}',
-          );
-          alert("成功: 192.168.11.9");
-          // Close socket
-          client.destroy();
-        },
-      );
-    } catch (e) {
-      alert("失敗");
-    }
-  };
+  const [client] = useState(getClient());
+  const [data, { subscribe, unsubscribe }] = useSensor((d) => {
+    const sendData = JSON.stringify(d);
+    client?.write(sendData);
+    console.log(sendData);
+  }, 1000 / 30);
 
   return (
     <View style={styles.container}>
-      <Text>Hello, World!</Text>
+      <Text>Hello, Sensor!!</Text>
       <Button
-        onPress={send}
-        title="Send socket"
+        onPress={subscribe}
+        title="Subscribe"
         color="#841584"
-        accessibilityLabel="Learn more about this purple button"
+        accessibilityLabel="Subscribe"
       />
+      <Button
+        onPress={unsubscribe}
+        title="Unsubscribe"
+        color="#841584"
+        accessibilityLabel="Unsubscribe"
+      />
+      <Text>加速度:</Text>
+      <Text>{data.accelerometer?.x}</Text>
+      <Text>{data.accelerometer?.y}</Text>
+      <Text>{data.accelerometer?.z}</Text>
+      <Text>角速度:</Text>
+      <Text>{data.gyroscope?.x}</Text>
+      <Text>{data.gyroscope?.y}</Text>
+      <Text>{data.gyroscope?.z}</Text>
     </View>
   );
 }
