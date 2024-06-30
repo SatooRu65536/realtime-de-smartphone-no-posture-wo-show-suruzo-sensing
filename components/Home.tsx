@@ -4,16 +4,32 @@ import { useState } from "react";
 import { Text, View, StyleSheet, Button } from "react-native";
 
 export default function Home() {
-  const [client] = useState(getClient());
+  const [client, setClient] = useState(getClient());
   const [data, { subscribe, unsubscribe }] = useSensor((d) => {
-    const sendData = JSON.stringify(d);
-    client?.write(sendData);
-    console.log(sendData);
-  }, 1000 / 30);
+    console.log(d);
+    const sendData = JSON.stringify({
+      timestamp: d?.accelerationIncludingGravity?.timestamp,
+      accelerometer: {
+        x: d?.accelerationIncludingGravity?.x,
+        y: d?.accelerationIncludingGravity?.y,
+        z: d?.accelerationIncludingGravity?.z,
+      },
+      gyroscope: {
+        x: d?.rotationRate?.alpha,
+        y: d?.rotationRate?.beta,
+        z: d?.rotationRate?.gamma,
+      },
+    });
+    try {
+      client?.write(sendData);
+    } catch (e) {
+      console.log(e);
+      setClient(getClient());
+    }
+  }, 1000 / 20);
 
   return (
     <View style={styles.container}>
-      <Text>Hello, Sensor!!</Text>
       <Button
         onPress={subscribe}
         title="Subscribe"
@@ -27,13 +43,13 @@ export default function Home() {
         accessibilityLabel="Unsubscribe"
       />
       <Text>加速度:</Text>
-      <Text>{data.accelerometer?.x}</Text>
-      <Text>{data.accelerometer?.y}</Text>
-      <Text>{data.accelerometer?.z}</Text>
+      <Text>{data?.accelerationIncludingGravity?.x}</Text>
+      <Text>{data?.accelerationIncludingGravity?.y}</Text>
+      <Text>{data?.accelerationIncludingGravity?.z}</Text>
       <Text>角速度:</Text>
-      <Text>{data.gyroscope?.x}</Text>
-      <Text>{data.gyroscope?.y}</Text>
-      <Text>{data.gyroscope?.z}</Text>
+      <Text>{data?.rotation?.alpha}</Text>
+      <Text>{data?.rotation?.beta}</Text>
+      <Text>{data?.rotation?.gamma}</Text>
     </View>
   );
 }
